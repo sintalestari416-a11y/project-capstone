@@ -6,14 +6,19 @@ import './index.css'
 
 // 🔥 TAMBAHAN
 import { MapProvider } from "./context/MapContext";
+import { AuthProvider } from "./context/AuthContext"; // ✅ TAMBAHAN BARU
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      {/* 🔥 WRAP DI SINI */}
-      <MapProvider>
-        <App />
-      </MapProvider>
+
+      {/* 🔥 WRAP SEMUA PROVIDER (TIDAK MERUSAK YANG LAMA) */}
+      <AuthProvider> {/* ✅ TAMBAHAN */}
+        <MapProvider>
+          <App />
+        </MapProvider>
+      </AuthProvider>
+
     </BrowserRouter>
   </React.StrictMode>,
 )

@@ -1,14 +1,28 @@
 import React from 'react';
+import { useNavigate } from "react-router-dom";
 
 const ViolationsTable = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-surface-container-high/70 backdrop-blur-md outline outline-1 outline-outline-variant/20 rounded-xl overflow-hidden">
+
       <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center">
         <h2 className="font-headline font-bold text-lg">Recent Violations</h2>
-        <button className="text-xs text-primary hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-md outline outline-1 outline-outline-variant/30">View All</button>
+
+        {/* 🔥 FIX: TAMBAH onClick (INI AJA YANG DIUBAH) */}
+        <button
+          onClick={() => navigate("/violations")}
+          className="text-xs text-primary hover:text-white transition-colors bg-white/5 px-3 py-1.5 rounded-md outline outline-1 outline-outline-variant/30 flex items-center gap-1"
+        >
+          View All
+          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+        </button>
       </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
+
           <thead>
             <tr className="text-xs text-on-surface-variant uppercase tracking-wider bg-surface-container-lowest/50">
               <th className="px-6 py-4 font-medium">ID</th>
@@ -19,7 +33,9 @@ const ViolationsTable = () => {
               <th className="px-6 py-4 font-medium text-right">Action</th>
             </tr>
           </thead>
+
           <tbody className="text-sm divide-y divide-outline-variant/10">
+
             <tr className="hover:bg-white/[0.02] transition-colors">
               <td className="px-6 py-4 font-number text-on-surface-variant">#V-8821</td>
               <td className="px-6 py-4 font-medium text-on-surface">Indomaret Point</td>
@@ -39,6 +55,7 @@ const ViolationsTable = () => {
                 </button>
               </td>
             </tr>
+
             <tr className="hover:bg-white/[0.02] transition-colors">
               <td className="px-6 py-4 font-number text-on-surface-variant">#V-8820</td>
               <td className="px-6 py-4 font-medium text-on-surface">Alfamart Express</td>
@@ -58,6 +75,7 @@ const ViolationsTable = () => {
                 </button>
               </td>
             </tr>
+
             <tr className="hover:bg-white/[0.02] transition-colors">
               <td className="px-6 py-4 font-number text-on-surface-variant">#V-8819</td>
               <td className="px-6 py-4 font-medium text-on-surface">Lawson</td>
@@ -77,6 +95,7 @@ const ViolationsTable = () => {
                 </button>
               </td>
             </tr>
+
             <tr className="hover:bg-white/[0.02] transition-colors">
               <td className="px-6 py-4 font-number text-on-surface-variant">#V-8818</td>
               <td className="px-6 py-4 font-medium text-on-surface">FamilyMart</td>
@@ -96,6 +115,7 @@ const ViolationsTable = () => {
                 </button>
               </td>
             </tr>
+
             <tr className="hover:bg-white/[0.02] transition-colors">
               <td className="px-6 py-4 font-number text-on-surface-variant">#V-8817</td>
               <td className="px-6 py-4 font-medium text-on-surface">Circle K</td>
@@ -115,6 +135,7 @@ const ViolationsTable = () => {
                 </button>
               </td>
             </tr>
+
           </tbody>
         </table>
       </div>

@@ -1,8 +1,7 @@
 import { useLocations } from "./useLocations";
 
-// 📏 HITUNG JARAK
 const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371e3;
+    const R = 6371000;
     const toRad = (x) => (x * Math.PI) / 180;
 
     const dLat = toRad(lat2 - lat1);
@@ -14,43 +13,37 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
         Math.cos(toRad(lat2)) *
         Math.sin(dLon / 2) ** 2;
 
-    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-};
-
-// 🚨 CEK VIOLATION
-const checkViolation = (current, all) => {
-    const lat1 = current.latitude || current.Latitude;
-    const lng1 = current.longitude || current.Longitude;
-
-    if (!lat1 || !lng1) return false;
-
-    return all.some((other) => {
-        if (current === other) return false;
-
-        const lat2 = other.latitude || other.Latitude;
-        const lng2 = other.longitude || other.Longitude;
-
-        if (!lat2 || !lng2) return false;
-
-        const distance = getDistance(lat1, lng1, lat2, lng2);
-        return distance < 500;
-    });
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
 export const useStats = () => {
     const locations = useLocations();
 
+    const retail = locations.filter((l) => l.type === "retail");
+    const pasar = locations.filter((l) => l.type === "pasar");
+
     let violations = 0;
 
-    locations.forEach(loc => {
-        if (checkViolation(loc, locations)) {
-            violations++;
-        }
+    retail.forEach((r) => {
+        const isViolation = pasar.some((p) => {
+            const distance = getDistance(r.lat, r.lng, p.lat, p.lng);
+            return distance < 500; // 🔥 aturan utama
+        });
+
+        if (isViolation) violations++;
     });
 
+    const safe = retail.length - violations;
+
+    const compliance =
+        retail.length === 0
+            ? 0
+            : ((safe / retail.length) * 100).toFixed(1);
+
     return {
-        total: locations.length,
+        total: retail.length,
         violations,
-        safe: locations.length - violations
+        safe,
+        compliance,
     };
 };

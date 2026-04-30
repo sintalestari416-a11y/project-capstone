@@ -18,7 +18,7 @@ const Sidebar = () => {
         </div>
         <span className="text-xs text-on-surface-variant tracking-wider uppercase pl-11">Jakarta Selatan</span>
       </div>
-      
+
       {/* Navigation Links */}
       <div className="flex flex-col mt-4 flex-1">
         <NavLink to="/" className={({ isActive }) => isActive ? activeLinkClass : inactiveLinkClass} end>
@@ -37,12 +37,12 @@ const Sidebar = () => {
           <span className="material-symbols-outlined">leaderboard</span>
           <span className="font-medium text-sm">Rankings</span>
         </NavLink>
-        <NavLink to="/settings" className={({ isActive }) => isActive ? activeLinkClass : inactiveLinkClass}>
-          <span className="material-symbols-outlined">settings</span>
-          <span className="font-medium text-sm">Settings</span>
+        <NavLink to="/violations" className={({ isActive }) => isActive ? activeLinkClass : inactiveLinkClass}>
+          <span className="material-symbols-outlined">warning</span>
+          <span className="font-medium text-sm">Violations</span>
         </NavLink>
       </div>
-      
+
       {/* CTA */}
       <div className="p-6 mt-auto">
         <button className="w-full py-3 px-4 bg-gradient-to-r from-primary-container to-[#5a00c6] text-white font-bold text-xs tracking-widest uppercase rounded-lg shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] transition-all duration-300 flex items-center justify-center gap-2">
