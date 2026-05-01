@@ -65,10 +65,21 @@ export const useLocations = () => {
             .filter(Boolean);
 
         // 🔥 GABUNG SEMUA (INI KUNCI)
+        // 🔥 GABUNG SEMUA (INI KUNCI)
+        let localData = [];
+
+        try {
+            localData = JSON.parse(localStorage.getItem("locations")) || [];
+        } catch (e) {
+            console.error("LocalStorage error:", e);
+            localData = [];
+        }
+
         const combined = [
             ...retailLocations,
             ...pasarLocations,
-            ...zonasiLocations, // ✅ sekarang kepakai
+            ...zonasiLocations,
+            ...localData,
         ];
 
         console.log("✅ FINAL CLEAN LOCATIONS:", combined);
