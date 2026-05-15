@@ -4,22 +4,83 @@ import prisma from '../config/database.js';
 const router = Router();
 
 // GET /api/v1/entities
+// GET /api/v1/entities
 router.get('/', async (req, res, next) => {
   try {
-    const { districtId, type, isFlagged, page = 1, limit = 50 } = req.query;
-    const where = {};
-    if (districtId) where.districtId = districtId;
-    if (type) where.type = type.toUpperCase();
-    if (isFlagged !== undefined) where.isFlagged = isFlagged === 'true';
+    const {
+      districtId,
+      type,
+      permitStatus,
+      isFlagged,
+      page = 1,
+      limit = 50,
+      search,
+    } = req.query;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const where = {};
+
+    const allowedTypes = ['PASAR', 'MINIMARKET', 'SUPERMARKET'];
+    const allowedPermitStatuses = ['APPROVED', 'UNDER_REVIEW', 'REJECTED', 'EXPIRED'];
+
+    if (districtId) where.districtId = districtId;
+
+    if (type) {
+      const upperType = type.toUpperCase();
+      if (!allowedTypes.includes(upperType)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid entity type',
+        });
+      }
+      where.type = upperType;
+    }
+
+    if (permitStatus) {
+      const upperPermitStatus = permitStatus.toUpperCase();
+      if (!allowedPermitStatuses.includes(upperPermitStatus)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid permit status',
+        });
+      }
+      where.permitStatus = upperPermitStatus;
+    }
+
+    if (isFlagged !== undefined) {
+      where.isFlagged = isFlagged === 'true';
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { address: { contains: search, mode: 'insensitive' } },
+        { store: { contains: search, mode: 'insensitive' } },
+        { kelurahan: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const pageNumber = Math.max(parseInt(page), 1);
+    const limitNumber = Math.min(Math.max(parseInt(limit), 1), 100);
+    const skip = (pageNumber - 1) * limitNumber;
+
     const [entities, total] = await Promise.all([
       prisma.entity.findMany({
         where,
         skip,
-        take: parseInt(limit),
-        include: { district: { select: { name: true, code: true } } },
-        orderBy: { name: 'asc' },
+        take: limitNumber,
+        include: {
+          district: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          name: 'asc',
+        },
       }),
       prisma.entity.count({ where }),
     ]);
@@ -27,9 +88,16 @@ router.get('/', async (req, res, next) => {
     res.json({
       success: true,
       data: entities,
-      meta: { total, page: parseInt(page), limit: parseInt(limit), totalPages: Math.ceil(total / parseInt(limit)) },
+      meta: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
+      },
     });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /api/v1/entities/:id
@@ -56,7 +124,7 @@ router.get('/:id/nearby', async (req, res, next) => {
     if (!entity) return res.status(404).json({ success: false, error: 'Entity not found' });
 
     // Use raw SQL with PostGIS ST_DWithin for accurate spatial query
-    const radiusMeters = parseFloat(radius);
+    const radiusMeters = Math.min(parseFloat(radius), 5000);
     const nearby = await prisma.$queryRaw`
       SELECT 
         e.id, e.name, e.type, e.latitude, e.longitude, e.store, e.kelurahan,
@@ -80,5 +148,357 @@ router.get('/:id/nearby', async (req, res, next) => {
     res.json({ success: true, data: nearby });
   } catch (err) { next(err); }
 });
+
+// POST /api/v1/entities
+router.post('/', async (req, res, next) => {
+  try {
+    const {
+      name,
+      type,
+      address,
+      latitude,
+      longitude,
+      placeId,
+      store,
+      kelurahan,
+      rating = 0,
+      totalRatings = 0,
+      permitStatus = 'UNDER_REVIEW',
+      complianceScore = 0,
+      isFlagged = false,
+      districtId,
+    } = req.body;
+
+    const district = await prisma.district.findUnique({
+      where: { id: districtId },
+    });
+
+    if (!district) {
+      return res.status(404).json({
+        success: false,
+        error: 'District not found',
+      });
+    }
+
+    const entity = await prisma.entity.create({
+      data: {
+        name,
+        type: type.toUpperCase(),
+        address,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        placeId,
+        store,
+        kelurahan,
+        rating: Number(rating),
+        totalRatings: Number(totalRatings),
+        permitStatus,
+        complianceScore: Number(complianceScore),
+        isFlagged: Boolean(isFlagged),
+        districtId,
+      },
+      include: {
+        district: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Entity created successfully',
+      data: entity,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/v1/entities/:id
+router.put('/:id', async (req, res, next) => {
+  try {
+    const {
+      name,
+      type,
+      address,
+      latitude,
+      longitude,
+      placeId,
+      store,
+      kelurahan,
+      rating,
+      totalRatings,
+      permitStatus,
+      complianceScore,
+      isFlagged,
+      districtId,
+    } = req.body;
+
+    const existingEntity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!existingEntity) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entity not found',
+      });
+    }
+
+    if (districtId) {
+      const district = await prisma.district.findUnique({
+        where: { id: districtId },
+      });
+
+      if (!district) {
+        return res.status(404).json({
+          success: false,
+          error: 'District not found',
+        });
+      }
+    }
+
+    const entity = await prisma.entity.update({
+      where: { id: req.params.id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(type !== undefined && { type: type.toUpperCase() }),
+        ...(address !== undefined && { address }),
+        ...(latitude !== undefined && { latitude: Number(latitude) }),
+        ...(longitude !== undefined && { longitude: Number(longitude) }),
+        ...(placeId !== undefined && { placeId }),
+        ...(store !== undefined && { store }),
+        ...(kelurahan !== undefined && { kelurahan }),
+        ...(rating !== undefined && { rating: Number(rating) }),
+        ...(totalRatings !== undefined && { totalRatings: Number(totalRatings) }),
+        ...(permitStatus !== undefined && { permitStatus }),
+        ...(complianceScore !== undefined && { complianceScore: Number(complianceScore) }),
+        ...(isFlagged !== undefined && { isFlagged: Boolean(isFlagged) }),
+        ...(districtId !== undefined && { districtId }),
+      },
+      include: {
+        district: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Entity updated successfully',
+      data: entity,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/v1/entities/:id
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const existingEntity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+      include: {
+        _count: {
+          select: {
+            violations: true,
+            audits: true,
+          },
+        },
+      },
+    });
+
+    if (!existingEntity) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entity not found',
+      });
+    }
+
+    if (
+      existingEntity._count.violations > 0 ||
+      existingEntity._count.audits > 0
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: 'Entity cannot be deleted because it still has related violations or audits',
+      });
+    }
+
+    await prisma.entity.delete({
+      where: { id: req.params.id },
+    });
+
+    res.json({
+      success: true,
+      message: 'Entity deleted successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/v1/entities/:id/flag
+router.patch('/:id/flag', async (req, res, next) => {
+  try {
+    const entity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!entity) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entity not found',
+      });
+    }
+
+    const updatedEntity = await prisma.entity.update({
+      where: { id: req.params.id },
+      data: {
+        isFlagged: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Entity flagged successfully',
+      data: updatedEntity,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/v1/entities/:id/unflag
+router.patch('/:id/unflag', async (req, res, next) => {
+  try {
+    const entity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!entity) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entity not found',
+      });
+    }
+
+    const updatedEntity = await prisma.entity.update({
+      where: { id: req.params.id },
+      data: {
+        isFlagged: false,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Entity unflagged successfully',
+      data: updatedEntity,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/v1/entities/:id/violations
+router.get('/:id/violations', async (req, res, next) => {
+  try {
+    const entity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!entity) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entity not found',
+      });
+    }
+
+    const violations = await prisma.violation.findMany({
+      where: {
+        entityId: req.params.id,
+      },
+      orderBy: {
+        detectedAt: 'desc',
+      },
+      include: {
+        district: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        zoningRule: {
+          select: {
+            id: true,
+            name: true,
+            ruleType: true,
+            minDistanceMeters: true,
+            maxEntitiesPerZone: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: violations,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/v1/entities/:id/audits
+router.get('/:id/audits', async (req, res, next) => {
+  try {
+    const entity = await prisma.entity.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!entity) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entity not found',
+      });
+    }
+
+    const audits = await prisma.audit.findMany({
+      where: {
+        entityId: req.params.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        district: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: audits,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
 
 export default router;
