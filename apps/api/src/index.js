@@ -24,12 +24,13 @@ const PORT = process.env.PORT || 3001;
 // ─── Middleware ──────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
-    credentials: true,
-  })
-);
+// CORS origins from env-var (comma-separated). Empty/unset → allow all for local dev.
+const allowedOrigins = process.env.ALLOWED_ORIGINS;
+const corsOptions = allowedOrigins
+  ? { origin: allowedOrigins.split(',').map((o) => o.trim()), credentials: true }
+  : { origin: true, credentials: true };
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(morgan('dev'));
