@@ -19,6 +19,13 @@ RUN npm ci --include=dev
 # ─── Web build stage ──────────────────────────────────────────────────
 FROM base AS web-stage
 
+# Accept VITE_ build args — passed from docker-compose build.args
+# These are baked into the JS bundle by Vite at build time
+ARG VITE_API_URL=""
+ARG VITE_API_BASE_URL="/api/v1"
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 COPY apps/web/ ./apps/web/
 RUN cd apps/web && npm run build
 

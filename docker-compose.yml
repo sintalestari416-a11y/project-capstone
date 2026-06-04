@@ -41,6 +41,8 @@ services:
       # Default points to host.docker.internal for local development.
       # Update this URL when deploying to production.
       AI_SERVICE_URL: "http://host.docker.internal:5000"
+      ALLOWED_ORIGINS: "https://zonify.my.id"
+
     volumes:
       - ./apps/api/src:/app/apps/api/src
       - ./prisma:/app/prisma
@@ -51,6 +53,12 @@ services:
       context: .
       dockerfile: Dockerfile
       target: web-final
+      args:
+        # VITE_ vars are baked into the JS bundle at build time by Vite.
+        # Empty VITE_API_URL = same-origin requests, proxied by Nginx inside
+        # the container to zonify-api:3001.
+        VITE_API_URL: ""
+        VITE_API_BASE_URL: "/api/v1"
     container_name: zonify-web
     restart: unless-stopped
     depends_on:
