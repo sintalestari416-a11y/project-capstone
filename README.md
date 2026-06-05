@@ -20,28 +20,28 @@ cd project-capstone
 Jalankan perintah berikut pada *root directory* untuk menginstal seluruh dependensi sistem:
 npm install
 
-**3. Konfigurasi Environment Variables (.env)
+**3. Konfigurasi Environment Variables (.env)**
 Siapkan file .env pada dua direktori berikut berdasarkan template yang tersedia:
 Backend (apps/api/.env): Konfigurasi URI koneksi database (PostgreSQL) dan kredensial sistem terkait.
 Frontend (apps/web/.env): Konfigurasi URL API (contoh: VITE_API_URL=http://localhost:3000).
 
-**4. Inisialisasi Layanan Docker
+**4. Inisialisasi Layanan Docker**
 Proyek ini menggunakan Docker untuk memfasilitasi penyediaan database dan environment yang terisolasi. Jalankan perintah berikut:
 docker-compose up -d
 (Catatan: Panduan inisialisasi dan seeding data via Docker tersedia pada docker/DOCKER-SEED-GUIDE.md)
 
-**5. Migrasi dan Seeding Database (Prisma)
+**5. Migrasi dan Seeding Database (Prisma)**
 cd apps/api
 npx prisma migrate dev
 npm run seed  # Eksekusi jika skrip seed tersedia
 cd ../..
-6. Menjalankan Aplikasi (Mode Development)
+6. Menjalankan Aplikasi (Mode Development)**
 Dari root directory, jalankan perintah berikut untuk mengaktifkan API dan Web secara bersamaan:
 npm run dev
 Frontend (React/Vite): http://localhost:5173
 Backend API (Node.js): http://localhost:3000
 
-**Petunjuk Penggunaan Fitur
+**Petunjuk Penggunaan Fitur**
 Setelah sistem beroperasi, fitur utama Zonify dapat diakses melalui alur berikut:
 Akses Dashboard: Navigasikan browser ke URL frontend dan lakukan otentikasi menggunakan kredensial hasil seeding database.
 Pemetaan Zonasi (Map View): Akses menu Map/Peta untuk visualisasi koordinat ritel. Sistem secara otomatis menandai area klaster (flagged clusters) yang terindikasi melanggar batas regulasi zonasi.
@@ -49,14 +49,14 @@ Manajemen Pelanggaran: Akses halaman Violations untuk meninjau data ritel yang m
 Analisis dan Prediksi AI: Akses halaman Analytics/Rankings untuk mengevaluasi data analitik, statistik per distrik, serta prediksi tren pertumbuhan ritel yang ditenagai oleh model AI.
 Log Audit: Pantau riwayat perubahan status data dan aturan zonasi melalui menu Audit Logs.
 
-**Spesifikasi Teknis Proyek
+**Spesifikasi Teknis Proyek**
 Tumpukan Teknologi (Tech Stack)
 Frontend: React.js, Vite, Tailwind CSS
 Backend: Node.js, Express.js
 Database & ORM: PostgreSQL, Prisma ORM
 Infrastruktur & Deployment: Docker, Vercel
 
-**Struktur Direktori Utama
+**Struktur Direktori Utama**
 apps/api/: Memuat kode sumber backend (Routes, Controllers, Services, Prisma Schema, dan dataset CSV).
 apps/web/: Memuat kode sumber frontend (React Components, Pages, Context, Hooks).
 docker/: Memuat file pendukung dan konfigurasi infrastruktur (Nginx/Docker).
