@@ -10,7 +10,7 @@ import {
 
 const router = Router();
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:5000';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL;
 
 const COMPETITOR_RADIUS_METERS = 500;
 const HEAD_TO_HEAD_RADIUS_METERS = 50;
@@ -260,7 +260,7 @@ router.post('/predict', async (req, res, next) => {
     }
 
     const features = await buildPredictionFeatures(latitude, longitude);
-    const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/zonasi/predict`, features, { timeout: 15000 });
+    const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/v1/ai/predict`, features, { timeout: 15000 });
 
     // 1. Ambil data pasar secara agresif
     const semuaEntity = await prisma.entity.findMany();
@@ -469,7 +469,7 @@ router.post('/recommendation', async (req, res, next) => {
     let aiExplanation = null;
     try {
       const llmResponse = await axios.post(
-        `${AI_SERVICE_URL}/api/llm/explain`,
+        `${AI_SERVICE_URL}/api/v1/ai/recommendation`,
         { prompt },
         { timeout: 20000 }
       );
