@@ -40,8 +40,8 @@ services:
       # AI_SERVICE_URL is an external dependency from another repository.
       # Default points to host.docker.internal for local development.
       # Update this URL when deploying to production.
-      AI_SERVICE_URL: "http://host.docker.internal:5000"
-      ALLOWED_ORIGINS: "https://zonify.my.id"
+      AI_SERVICE_URL: "https://melissalau-zonify-api.hf.space"
+      ALLOWED_ORIGINS: "https://zonify.my.id,http://localhost:5173,http://localhost:3001,http://localhost:80,http://localhost"
 
     volumes:
       - ./apps/api/src:/app/apps/api/src

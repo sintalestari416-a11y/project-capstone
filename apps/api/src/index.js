@@ -72,9 +72,23 @@ app.use((req, res) => {
   });
 });
 
-// ─── Error Handler ──────────────────────────────────────
+// ─── Error Handler ──────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.message);
+  // Log full error details for debugging
+  console.error('❌ Error on', req.method, req.originalUrl);
+  console.error('  message:', err.message || '(no message)');
+  console.error('  code:   ', err.code || '(no code)');
+  if (err.response) {
+    // Axios HTTP error from upstream
+    console.error('  upstream status:', err.response.status);
+    console.error('  upstream body:  ', JSON.stringify(err.response.data));
+  }
+  if (err.request && !err.response) {
+    // Axios network error (ECONNREFUSED, ENOTFOUND, etc.)
+    console.error('  network error - no response received');
+    console.error('  request URL:', err.config?.url || '?');
+  }
+  console.error('  stack:', err.stack);
 
   res.status(err.status || 500).json({
     success: false,

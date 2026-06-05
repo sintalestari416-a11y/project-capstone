@@ -260,7 +260,6 @@ router.post('/predict', async (req, res, next) => {
     }
 
     const features = await buildPredictionFeatures(latitude, longitude);
-    const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/v1/ai/predict`, features, { timeout: 15000 });
 
     // 1. Ambil data pasar secara agresif
     const semuaEntity = await prisma.entity.findMany();
@@ -276,10 +275,16 @@ router.post('/predict', async (req, res, next) => {
       ai_recommendation: 'Lokasi aman dari pelanggaran zonasi.'
     };
 
-    // Ambil data asli dari Python jika ada
-    if (aiResponse.data && typeof aiResponse.data === 'object') {
-      finalAIObject.prediction = aiResponse.data.prediction || 'AMAN';
-      finalAIObject.ai_recommendation = aiResponse.data.ai_recommendation || 'Aman';
+    // Panggil AI service — jika gagal (timeout, sleep, dll), lanjut dengan guardrail lokal
+    try {
+      const aiResponse = await axios.post(`${AI_SERVICE_URL}/api/zonasi/predict`, features, { timeout: 120000 });
+      if (aiResponse.data && typeof aiResponse.data === 'object') {
+        finalAIObject.prediction = aiResponse.data.prediction || 'AMAN';
+        finalAIObject.ai_recommendation = aiResponse.data.ai_recommendation || 'Aman';
+      }
+    } catch (aiErr) {
+      console.warn('⚠️  AI service unreachable, using local guardrail fallback.');
+      console.warn('   reason:', aiErr.code || aiErr.message);
     }
 
     // 3. HITUNG JARAK MUTLAK
