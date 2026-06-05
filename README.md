@@ -60,3 +60,6 @@ Log Audit: Pantau riwayat perubahan status data dan aturan zonasi melalui menu A
 * apps/api/: Memuat kode sumber backend (Routes, Controllers, Services, Prisma Schema, dan dataset CSV).
 * apps/web/: Memuat kode sumber frontend (React Components, Pages, Context, Hooks).
 * docker/: Memuat file pendukung dan konfigurasi infrastruktur (Nginx/Docker).
+
+**LINK YPRESENTASI YT**
+https://youtu.be/nLEC6gSH-kE?si=YuILFh_2RzTixITv
