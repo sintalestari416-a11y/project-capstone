@@ -22,8 +22,8 @@ npm install
 
 **3. Konfigurasi Environment Variables (.env)**
 Siapkan file .env pada dua direktori berikut berdasarkan template yang tersedia:
-Backend (apps/api/.env): Konfigurasi URI koneksi database (PostgreSQL) dan kredensial sistem terkait.
-Frontend (apps/web/.env): Konfigurasi URL API (contoh: VITE_API_URL=http://localhost:3000).
+* Backend (apps/api/.env): Konfigurasi URI koneksi database (PostgreSQL) dan kredensial sistem terkait.
+* Frontend (apps/web/.env): Konfigurasi URL API (contoh: VITE_API_URL=http://localhost:3000).
 
 **4. Inisialisasi Layanan Docker**
 Proyek ini menggunakan Docker untuk memfasilitasi penyediaan database dan environment yang terisolasi. Jalankan perintah berikut:
@@ -50,13 +50,13 @@ Analisis dan Prediksi AI: Akses halaman Analytics/Rankings untuk mengevaluasi da
 Log Audit: Pantau riwayat perubahan status data dan aturan zonasi melalui menu Audit Logs.
 
 **Spesifikasi Teknis Proyek**
-Tumpukan Teknologi (Tech Stack)
-Frontend: React.js, Vite, Tailwind CSS
-Backend: Node.js, Express.js
-Database & ORM: PostgreSQL, Prisma ORM
-Infrastruktur & Deployment: Docker, Vercel
+* Tumpukan Teknologi (Tech Stack)
+* Frontend: React.js, Vite, Tailwind CSS
+* Backend: Node.js, Express.js
+* Database & ORM: PostgreSQL, Prisma ORM
+* Infrastruktur & Deployment: Docker, Vercel
 
 **Struktur Direktori Utama**
-apps/api/: Memuat kode sumber backend (Routes, Controllers, Services, Prisma Schema, dan dataset CSV).
-apps/web/: Memuat kode sumber frontend (React Components, Pages, Context, Hooks).
-docker/: Memuat file pendukung dan konfigurasi infrastruktur (Nginx/Docker).
+* apps/api/: Memuat kode sumber backend (Routes, Controllers, Services, Prisma Schema, dan dataset CSV).
+* apps/web/: Memuat kode sumber frontend (React Components, Pages, Context, Hooks).
+* docker/: Memuat file pendukung dan konfigurasi infrastruktur (Nginx/Docker).
